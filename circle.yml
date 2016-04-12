@@ -4,11 +4,11 @@ machine:
 
 dependencies:
   override:
-    - docker build -t wilrnh/nginx-rtmp:$CIRCLE_TAG .
+    - docker build -t wilrnh/nginx-rtmp:$CIRCLE_TAG -t wilrnh/nginx-rtmp:latest .
 
 deployment:
   hub:
-    tag: /^[0-9.]+$/
+    tag: /^v[0-9.]+$/
     owner: wilrnh
     commands:
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
