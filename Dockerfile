@@ -141,6 +141,7 @@ RUN \
 # Setup Nginx service
 RUN mkdir /etc/service/nginx
 ADD etc_service_nginx_run /etc/service/nginx/run
+ADD etc_initd_nginx /etc/init.d/nginx
 
 EXPOSE 80 443
 
