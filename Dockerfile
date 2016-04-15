@@ -21,25 +21,25 @@ RUN \
   zlib1g-dev \
   yasm \
   libx264-dev \
-  && mkdir ~/ffmpeg_sources ~/ffmpeg_build \
-  && cd ~/ffmpeg_sources \
+  && mkdir /ffmpeg_sources /ffmpeg_build \
+  && cd /ffmpeg_sources \
   && curl -Lo fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/archive/v0.1.4.tar.gz \
   && tar xzvf fdk-aac.tar.gz \
   && cd fdk-aac-0.1.4/ \
   && autoreconf -fiv \
-  && ./configure --prefix="$HOME/ffmpeg_build" --disable-shared \
+  && ./configure --prefix="/ffmpeg_build" --disable-shared \
   && make \
   && make install \
   && make distclean \
-  && cd ~/ffmpeg_sources \
+  && cd /ffmpeg_sources \
   && curl -LO https://github.com/FFmpeg/FFmpeg/releases/download/n3.0/ffmpeg-3.0.tar.bz2 \
   && tar xjvf ffmpeg-3.0.tar.bz2 \
   && cd ffmpeg-3.0 \
-  && PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
-    --prefix="$HOME/ffmpeg_build" \
+  && PKG_CONFIG_PATH="/ffmpeg_build/lib/pkgconfig" ./configure \
+    --prefix="/ffmpeg_build" \
     --pkg-config-flags="--static" \
-    --extra-cflags="-I$HOME/ffmpeg_build/include" \
-    --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
+    --extra-cflags="-I/ffmpeg_build/include" \
+    --extra-ldflags="-L/ffmpeg_build/lib" \
     --bindir="/usr/bin" \
     --enable-gpl \
     --enable-libass \
@@ -50,11 +50,12 @@ RUN \
   && make \
   && make install \
   && make distclean \
-  && rm -rf ~/ffmpeg_sources ~/ffmpeg_build
-
-# Install Nginx
-RUN \
-  apt-get -y --force-yes install \
+  && rm -rf /ffmpeg_sources /ffmpeg_build \
+  \
+  # Install Nginx
+  && mkdir /nginx_sources \
+  && cd /nginx_sources \
+  && apt-get -y --force-yes install \
     autoconf automake build-essential \
     ca-certificates \
     libssl-dev \
@@ -111,9 +112,10 @@ RUN \
       --with-cc-opt="-g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security" \
       --with-ld-opt="-Wl,-Bsymbolic-functions -Wl,-z,relro" \
       --with-ipv6 \
-      --add-module=/nginx-rtmp-module-1.1.7.10 \
+      --add-module=/nginx_sources/nginx-rtmp-module-1.1.7.10 \
       --with-debug \
   && make && make install \
+  && rm -rf /nginx_sources \
   && addgroup --system nginx \
   && adduser \
       --system \
@@ -135,6 +137,13 @@ RUN \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log \
   && chown -R nginx:nginx /var/cache/nginx \
+  \
+  # Install Puppet
+  && apt-get -y --force-yes install \
+    puppet-common \
+    librarian-puppet \
+  \
+  # Cleanup
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -142,6 +151,10 @@ RUN \
 RUN mkdir /etc/service/nginx
 ADD etc_service_nginx_run /etc/service/nginx/run
 ADD etc_initd_nginx /etc/init.d/nginx
+
+# Setup Puppetfile
+ADD Puppetfile .
+RUN librarian-puppet install
 
 EXPOSE 80 443
 
