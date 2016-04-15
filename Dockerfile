@@ -138,11 +138,6 @@ RUN \
   && ln -sf /dev/stderr /var/log/nginx/error.log \
   && chown -R nginx:nginx /var/cache/nginx \
   \
-  # Install Puppet
-  && apt-get -y --force-yes install \
-    puppet-common \
-    librarian-puppet \
-  \
   # Cleanup
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -151,10 +146,6 @@ RUN \
 RUN mkdir /etc/service/nginx
 ADD etc_service_nginx_run /etc/service/nginx/run
 ADD etc_initd_nginx /etc/init.d/nginx
-
-# Setup Puppetfile
-ADD Puppetfile .
-RUN librarian-puppet install
 
 EXPOSE 80 443
 
